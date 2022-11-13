@@ -42,6 +42,10 @@ def AppendLog(_data, _logFile = "Notes"):
     with open(_logFile, "a") as _notes:
         _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data)
 
+def CommandLog(_data, _logFile = "Notes"):
+    with open(_logFile, "a") as _notes:
+        _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "\n" + _data + "\n")
+
 def AppendCommand(_data):
     with open("CommandHistory", "a") as _commands:
         _commands.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data)
@@ -84,8 +88,9 @@ def DoWork(Command):
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
+            AppendLog("[Operator Command]: " + command)
             sp = subprocess.run(ProcessLogFiles(command.osCommand), capture_output=True, shell=True)
-            AppendLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
+            CommandLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
 def PreLoad():
     LoadCommands(HWModule_nmap)
