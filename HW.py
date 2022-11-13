@@ -117,7 +117,7 @@ def ProcessArgs(_args):
             output.append(_args[i])
     return output
 
-def ProcessLogFiles(_logFile):
+def ProcessLogFiles(_logFile, Read=False):
     global Globals
     output = []
     for i in range(len(_logFile)):
@@ -129,7 +129,10 @@ def ProcessLogFiles(_logFile):
             for _global in Globals:
                 if _global.tag == _logFile[i]:
                     if _global.autoIncrement:
-                        output.append(str(_global.Get()))
+                        if Read:
+                            output.append(str(_global.Read()))
+                        else:
+                            output.append(str(_global.Get()))
                     else:
                         output.append(str(_global.value))
                 else:
