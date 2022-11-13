@@ -125,11 +125,11 @@ def ProcessLogFiles(_logFile):
             for _global in Globals:
                 if _global.tag == _logFile[i]:
                     if _global.autoIncrement:
-                        output.append(_global.Get())
+                        output.append(str(_global.Get()))
                     else:
-                        output.append(_global.value)
+                        output.append(str(_global.value))
                 else:
-                    output.append(_logFile[i])
+                    output.append(str(_logFile[i]))
     return ' '.join(output)
 
 
