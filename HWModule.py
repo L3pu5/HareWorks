@@ -22,7 +22,7 @@ class ModuleGlobal:
         else:
             return self.value
 
-    def __init(self, _tag, _value, _autoIncrement = False):
+    def __init__(self, _tag, _value, _autoIncrement = False):
         self.tag = _tag
         self.value = _value
         self.autoIncrement = _autoIncrement

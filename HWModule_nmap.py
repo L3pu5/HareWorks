@@ -7,5 +7,5 @@ Commands = [
 ]
 
 Globals = [
-    HWModule.ModuleGlobal("_NMAPCOUNT", 0, autoIncrement=True)
+    HWModule.ModuleGlobal("_NMAPCOUNT", 0, _autoIncrement=True)
 ]

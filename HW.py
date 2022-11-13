@@ -19,6 +19,15 @@ Commands = {
     4: []
 }
 
+Colours = {
+    "yellow": u"\u001b[33m",
+    "red": u"\u001b[31m",
+    "brightRed": u"\u001b[31;1m",
+    "green": u"\u001b[32m",
+    "brightGreen": u"\u001b[32;1m",
+    "reset": u"\u001b[0m"
+}
+
 Globals = []
 
 Continue = True
@@ -27,7 +36,7 @@ def ToDo():
     print("To do.")
 
 def Output(_data):
-    print("[HareWork]: " + _data)
+    print("["+ Colours["brightGreen"] + "HareWork" + Colours["reset"] + "]: " + _data)
 
 def AppendLog(_data, _logFile = "Notes"):
     with open(_logFile, "a") as _notes:
@@ -38,11 +47,18 @@ def AppendCommand(_data):
         _commands.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data)
 
 def Prompt():
-    print("[HareWork]> ", end="")
+    if Host == "":
+        print("[" + Colours["brightGreen"] + "HareWork" + Colours["reset"] + "]> ", end="")
+    else:
+        if Port == "":
+            print("[" + Colours["red"] + Host + Colours["reset"] + "]> ", end="")
+        else:
+            print("[" + Colours["red"] + Host + Colours["reset"] + ":" + Colours["yellow"] + Port + Colours["reset"] + "]> ", end="")
 
 def DoWork(Command):
     global Host
     global Commands
+    global Port
     _command = Command.split(' ')
     if len(_command) == 1:
         if _command[0] == "exit":
@@ -54,18 +70,23 @@ def DoWork(Command):
             Host = _command[1]
             Output("Host="+Host)
             return
+        elif(_command[0]) == "port":
+            Port = _command[1]
+            Output("Port="+Port)
+            return
     else:
+        if(_command[0]) == "log":
+            AppendLog("[Manual Operator Log]:" + ' '.join(ProcessArgs(_command[1:])) + '\n')
+            return
         ToDo()
 
     #all other commands
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
-            sp = subprocess.run(ProcessArgs(command.osCommand), capture_output=True)
+            sp = subprocess.run(ProcessLogFiles(command.osCommand), capture_output=True)
             AppendLog(sp.stdout, ProcessLogFiles(command.logFile))
             Output(sp)
-
-    Prompt()
 
 def PreLoad():
     LoadCommands(HWModule_nmap)
@@ -87,6 +108,8 @@ def ProcessArgs(_args):
     for i in range(len(_args)):
         if(_args[i] == "_HOST"):
             output.append(Host)
+        elif(_args[i] == "_PORT"):
+            output.append(Port);
         else:
             output.append(_args[i])
     return output
@@ -102,7 +125,10 @@ def ProcessLogFiles(_logFile):
         else:
             for _global in Globals:
                 if _global.tag == _logFile[i]:
-                    output.append(_global.value)
+                    if _global.autoIncrement:
+                        output.append(_global.Get())
+                    else:
+                        output.append(_global.value)
                 else:
                     output.append(_logFile[i])
     return ''.join(output)
@@ -110,8 +136,8 @@ def ProcessLogFiles(_logFile):
 
 def Main():
     PreLoad()
-    Prompt()
     while Continue:
+        Prompt()
         DoWork(input())
 
 if __name__ == "__main__":
