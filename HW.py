@@ -88,7 +88,7 @@ def DoWork(Command):
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
-            AppendLog("[Operator Command]: " + Command)
+            AppendLog("[Operator Command]: " + Command + " " + ProcessCommandArgs(command.osCommand) + " -> " + ProcessLogFiles(command.logFile))
             sp = subprocess.run(ProcessCommandArgs(command.osCommand), capture_output=True, shell=True)
             CommandLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
