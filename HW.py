@@ -88,8 +88,8 @@ def DoWork(Command):
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
-            AppendLog("[Operator Command]: " + command)
-            sp = subprocess.run(ProcessLogFiles(command.osCommand), capture_output=True, shell=True)
+            AppendLog("[Operator Command]: " + Command)
+            sp = subprocess.run(ProcessCommandArgs(command.osCommand), capture_output=True, shell=True)
             CommandLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
 def PreLoad():
@@ -100,7 +100,6 @@ def LoadCommands(_module):
     global Commands
     for command in _module.Commands:
         Commands[command.hwCount].append(command)
-        print(ProcessArgs(command.osCommand))
 
 def LoadGlobals(_module):
     global Globals
@@ -119,6 +118,25 @@ def ProcessArgs(_args):
     return output
 
 def ProcessLogFiles(_logFile):
+    global Globals
+    output = []
+    for i in range(len(_logFile)):
+        if(_logFile[i] == "_HOST"):
+            output.append(Host)
+        elif(_logFile[i] == "_PORT"):
+            output.append(Port);
+        else:
+            for _global in Globals:
+                if _global.tag == _logFile[i]:
+                    if _global.autoIncrement:
+                        output.append(str(_global.Get()))
+                    else:
+                        output.append(str(_global.value))
+                else:
+                    output.append(str(_logFile[i]))
+    return ''.join(output)
+
+def ProcessCommandArgs(_logFile):
     global Globals
     output = []
     for i in range(len(_logFile)):
