@@ -40,7 +40,7 @@ def Output(_data):
 
 def AppendLog(_data, _logFile = "Notes"):
     with open(_logFile, "a") as _notes:
-        _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data)
+        _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data + "\n")
 
 def CommandLog(_data, _logFile = "Notes"):
     with open(_logFile, "a") as _notes:
@@ -48,7 +48,7 @@ def CommandLog(_data, _logFile = "Notes"):
 
 def AppendCommand(_data):
     with open("CommandHistory", "a") as _commands:
-        _commands.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data)
+        _commands.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data + "\n")
 
 def Prompt():
     if Host == "":
@@ -88,7 +88,7 @@ def DoWork(Command):
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
-            AppendLog("[Operator Command]: " + Command + " " + ProcessCommandArgs(command.osCommand) + " -> " + ProcessLogFiles(command.logFile))
+            AppendLog("[Operator Command]: " + Command + " " + ProcessCommandArgs(command.osCommand) + " -> " + ProcessLogFiles(command.logFile, Read=True))
             sp = subprocess.run(ProcessCommandArgs(command.osCommand), capture_output=True, shell=True)
             CommandLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
@@ -136,7 +136,7 @@ def ProcessLogFiles(_logFile):
                     output.append(str(_logFile[i]))
     return ''.join(output)
 
-def ProcessCommandArgs(_logFile):
+def ProcessCommandArgs(_logFile, Read=False):
     global Globals
     output = []
     for i in range(len(_logFile)):
@@ -148,7 +148,10 @@ def ProcessCommandArgs(_logFile):
             for _global in Globals:
                 if _global.tag == _logFile[i]:
                     if _global.autoIncrement:
-                        output.append(str(_global.Get()))
+                        if Read:
+                            output.append(str(_global.Read()))
+                        else:
+                            output.append(str(_global.Get()))
                     else:
                         output.append(str(_global.value))
                 else:

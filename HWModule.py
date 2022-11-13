@@ -21,6 +21,9 @@ class ModuleGlobal:
             return self.value-1
         else:
             return self.value
+    
+    def Read(self):
+        return self.value
 
     def __init__(self, _tag, _value, _autoIncrement = False):
         self.tag = _tag
