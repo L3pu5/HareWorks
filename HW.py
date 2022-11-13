@@ -85,7 +85,7 @@ def DoWork(Command):
         if command.hwCommand == Command:
             print(ProcessArgs(command.osCommand))
             sp = subprocess.run(ProcessLogFiles(command.osCommand), capture_output=True, shell=True)
-            AppendLog(sp.stdout, ProcessLogFiles(command.logFile))
+            AppendLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
 def PreLoad():
     LoadCommands(HWModule_nmap)
