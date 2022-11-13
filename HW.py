@@ -131,7 +131,7 @@ def ProcessLogFiles(_logFile):
                         output.append(_global.value)
                 else:
                     output.append(_logFile[i])
-    return ''.join(output)
+    return ' '.join(output)
 
 
 def Main():
