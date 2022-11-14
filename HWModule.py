@@ -14,6 +14,7 @@ class ModuleGlobal:
     tag = ""
     value = ""
     autoIncrement = False
+    autoFormat = False
 
     def Get(self):
         if self.autoIncrement:
@@ -21,11 +22,18 @@ class ModuleGlobal:
             return self.value-1
         else:
             return self.value
-    
+
+    def Set(self, _value):
+        if self.autoFormat == False:
+            self.value = _value
+        else:
+            self.value= self.autoFormat.replace("$1", _value)
+
     def Read(self):
         return self.value
 
-    def __init__(self, _tag, _value, _autoIncrement = False):
+    def __init__(self, _tag, _value, _autoIncrement = False, _autoFormat = False):
         self.tag = _tag
         self.value = _value
         self.autoIncrement = _autoIncrement
+        self.autoFormat = _autoFormat

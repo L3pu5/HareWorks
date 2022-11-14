@@ -67,8 +67,11 @@ def DoWork(Command):
     if len(_command) == 1:
         if _command[0] == "exit":
             exit()
+        elif _command[0] == "show":
+            ShowGlobals()
         else:
             ToDo()
+
     elif len(_command) == 2:
         if(_command[0]) == "tar":
             Host = _command[1]
@@ -81,6 +84,9 @@ def DoWork(Command):
     else:
         if(_command[0]) == "log":
             AppendLog("[Manual Operator Log]:" + ' '.join(ProcessArgs(_command[1:])) + '\n')
+            return
+        if(_command[0] == "set"):
+            SetGlobal(_command[1].upper(), _command[2])
             return
         ToDo()
 
@@ -161,6 +167,28 @@ def ProcessCommandArgs(_logFile, Read=False):
                     output.append(str(_logFile[i]))
     return ' '.join(output)
 
+def SetGlobal(_globalToSet, _value):
+    global Globals
+    for _global in Globals:
+        if _global.tag == _globalToSet:
+            _global.Set(_value)
+            Output("GLOBAL " + Colours["brightRed"] + _global.tag + Colours["reset"] + "=" + _global.Read())
+            return
+    Output(Colours["brightRed"] + "Global not fount" + Colours["reset"])
+
+def ShowGlobal(_globalToShow):
+    global Globals
+    for _global in Globals:
+        if _global.tag == _globalToShow:
+            Output("GLOBAL " + Colours["brightRed"] + _global.tag + Colours["reset"] + "=" + _global.Read())
+            return
+    Output(Colours["brightRed"] + "Global not fount" + Colours["reset"])
+    
+def ShowGlobals():
+    global Globals
+    print("{0:20} | {1}".format("Global Tag", "Value"))
+    for _global in Globals:
+        print("{0:20} | {1}".format(_global.tag, _global.Read()))   
 
 def Main():
     PreLoad()
