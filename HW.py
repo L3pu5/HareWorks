@@ -1,9 +1,11 @@
 import os
 import subprocess
 from datetime import datetime
+import re
 
 import HWModule
 import HWModule_nmap
+import HWModule_ffuf
 #-
 
 Host = ""
@@ -42,7 +44,14 @@ def AppendLog(_data, _logFile = "Notes"):
     with open(_logFile, "a") as _notes:
         _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " | " + _data + "\n")
 
+#Logging command returned from the subprocess.
 def CommandLog(_data, _logFile = "Notes"):
+    #If we are the NMAP log file, we should probably update our ports appropriately.
+    if(_data.startswith("Starting Nmap")):
+        portsRegex = re.compile("^([0-9]+)")
+        for group in portsRegex.finditer(_logFile):
+            Ports.append(group)
+    #Continue to log
     with open(_logFile, "a") as _notes:
         _notes.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + "\n" + _data + "\n")
 
@@ -93,14 +102,39 @@ def DoWork(Command):
     #all other commands
     for command in Commands[len(_command)]:
         if command.hwCommand == Command:
-            print(ProcessArgs(command.osCommand))
             AppendLog("[Operator Command]: " + Command + " " + ProcessCommandArgs(command.osCommand) + " -> " + ProcessLogFiles(command.logFile, Read=True))
-            sp = subprocess.run(ProcessCommandArgs(command.osCommand), capture_output=True, shell=True)
+            if(command.hasAdditionaArgs != False):
+                commandString = ' '.join(command.osCommand) # Have to create a string to use replace and not iterate over the objects
+                for x in command.additionalArgs:
+                    print("Additional argument required: " + x[0])
+                    response = input("Default: " + x[1])
+                    if not response:
+                        commandString = commandString.replace(x[0], x[1]) # Substitute the default where the additional argument lives
+                    else:
+                        commandString = commandString.replace(x[0], response) #Take the user response instead.
+                #Forward the command for global arg processing.
+                #  
+                commandString = commandString.split(' ') #This requires making the string back into an array
+                print(ProcessArgs(commandString))
+                sp = subprocess.run(ProcessCommandArgs(commandString), capture_output=True, shell=True)
+            else:
+                print(ProcessArgs(command.osCommand))
+                sp = subprocess.run(ProcessCommandArgs(command.osCommand), capture_output=True, shell=True)
+            
             CommandLog(sp.stdout.decode("utf-8"), ProcessLogFiles(command.logFile))
 
 def PreLoad():
+    #GLOBALS such as PORTS
+    LoadGlobal_Globals()
+    #NMAP
     LoadCommands(HWModule_nmap)
     LoadGlobals(HWModule_nmap)
+    #FFUF
+    LoadCommands(HWModule_ffuf)
+    LoadGlobals(HWModule_ffuf)
+
+def LoadGlobal_Globals():
+    Globals.append(HWModule.ModuleGlobal("_PORTSCOMMA", ','.join(Ports)))
 
 def LoadCommands(_module):
     global Commands
@@ -126,36 +160,41 @@ def ProcessArgs(_args):
 def ProcessLogFiles(_logFile, Read=False):
     global Globals
     output = []
+
     for i in range(len(_logFile)):
         if(_logFile[i] == "_HOST"):
             output.append(Host)
         elif(_logFile[i] == "_PORT"):
             output.append(Port);
         else:
+            isGlobal = False
             for _global in Globals:
                 if _global.tag == _logFile[i]:
                     if _global.autoIncrement:
                         if Read:
                             output.append(str(_global.Read()))
+                            isGlobal = True
                         else:
                             output.append(str(_global.Get()))
+                            isGlobal = True
                     else:
                         output.append(str(_global.value))
-                else:
-                    output.append(str(_logFile[i]))
+                        isGlobal = True
+            if not isGlobal:
+                output.append(str(_logFile[i]))
     return ''.join(output)
 
-def ProcessCommandArgs(_logFile, Read=False):
+def ProcessCommandArgs(_command, Read=False):
     global Globals
     output = []
-    for i in range(len(_logFile)):
-        if(_logFile[i] == "_HOST"):
+    for i in range(len(_command)):
+        if(_command[i] == "_HOST"):
             output.append(Host)
-        elif(_logFile[i] == "_PORT"):
+        elif(_command[i] == "_PORT"):
             output.append(Port);
         else:
             for _global in Globals:
-                if _global.tag == _logFile[i]:
+                if _global.tag == _command[i]:
                     if _global.autoIncrement:
                         if Read:
                             output.append(str(_global.Read()))
@@ -164,7 +203,7 @@ def ProcessCommandArgs(_logFile, Read=False):
                     else:
                         output.append(str(_global.value))
                 else:
-                    output.append(str(_logFile[i]))
+                    output.append(str(_command[i]))
     return ' '.join(output)
 
 def SetGlobal(_globalToSet, _value):

@@ -3,18 +3,26 @@ class ModuleCommand:
     hwCommand = ""
     hwCount = 0
     logFile = [""]
+    hasAdditionaArgs = False
+    additionalArgs = [] # These are of the form: {["ARGNAME", "DEFAULT"]}
 
-    def __init__(self, _osCommand, _hwCommand, _logFile = ["logs"]):
+    def __init__(self, _osCommand, _hwCommand, _logFile = ["logs"], _hasAdditionalArgs = False, _additionalArgs = [] ):
         self.osCommand = _osCommand
         self.hwCommand = _hwCommand
         self.hwCount = len(self.hwCommand.split())
         self.logFile = _logFile
+        if(_hasAdditionalArgs != False):
+            self.hasAdditionaArgs = []
+            for i in _additionalArgs:
+                self.hasAdditionaArgs.append(i[0]);
+        self.additionalArgs = _additionalArgs
 
 class ModuleGlobal:
     tag = ""
     value = ""
     autoIncrement = False
     autoFormat = False
+
 
     def Get(self):
         if self.autoIncrement:
